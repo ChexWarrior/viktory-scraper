@@ -3,6 +3,9 @@ FROM node:8-slim
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
 
+ENV USER_ID 1000
+ENV GROUP_ID 1000
+
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
 # installs, work.
@@ -31,14 +34,10 @@ RUN npm i puppeteer
 WORKDIR /usr/src/app
 
 # Add user so we don't need --no-sandbox.
-RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-  && mkdir -p /home/pptruser/Downloads \
-  && chown -R pptruser:pptruser /home/pptruser \
-  && chown -R pptruser:pptruser /node_modules \
-  && chown -R pptruser:pptruser /usr/src/app
+RUN chown -R node:node /usr/src/app
 
 # Run everything after as non-privileged user.
-USER pptruser
+USER node
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["google-chrome-unstable"]

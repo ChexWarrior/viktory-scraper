@@ -28,13 +28,12 @@ RUN chmod +x /usr/local/bin/dumb-init
 #     browser.launch({executablePath: 'google-chrome-unstable'})
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-# Install puppeteer so it's available in the container.
-RUN npm i puppeteer
-
 WORKDIR /usr/src/app
+COPY app/ ./
 
 # Add user so we don't need --no-sandbox.
-RUN chown -R node:node /usr/src/app
+RUN chown -R node:node . \
+  && npm install
 
 # Run everything after as non-privileged user.
 USER node

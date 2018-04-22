@@ -16,7 +16,13 @@ let gameID = process.argv[2];
   });
 
   const page = await browser.newPage();
+  await page.setViewport({
+    width: 1280,
+    height: 800
+  });
+  
   await page.goto(`${GAMESBYEMAIL_BASE_URL}${gameID}`);
+  await page.waitForSelector('#Foundation_Elemental_2_openLog');
   await page.screenshot({
     path: 'test.png'
   });

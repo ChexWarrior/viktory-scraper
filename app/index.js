@@ -2,19 +2,27 @@ const puppeteer = require('puppeteer');
 const process = require('process');
 const GAMESBYEMAIL_BASE_URL = 'http://gamesbyemail.com/Games/Play?';
 
+const waitForElementToLoad = async function(page, container, targets) {
+  let counter = -1;
+  let numTargets = 0;
 
-    for (let openedPage of openedPages) {
-      if (currentPage._target._targetId == openedPage._target._targetId) {
-        notTracked = false;
-      }
+  await page.waitForSelector(container);
+
+  while(numTargets !== counter) {
+    counter = numTargets;
+    await page.waitFor(2000);
+    console.log(`counter: ${counter}`);
+
+    for(let target of targets) {
+      numTargets = await page.$eval(container, (container, target) => {
+        return container.querySelectorAll(target).length;
+      }, target);
     }
 
-    if (notTracked) {
-      return currentPage;
-    }
+    console.log(`numTargets: ${numTargets}`);
   }
 
-  return null;
+  console.log(`End Counter: ${counter}, End numTargets: ${numTargets}`);
 };
 
 if(process.argv.length < 3) {
@@ -30,10 +38,8 @@ let gameID = process.argv[2];
   });
 
   const initialPage = await browser.newPage();
-
   await initialPage.goto(`${GAMESBYEMAIL_BASE_URL}${gameID}`);
   await initialPage.waitForSelector('#Foundation_Elemental_2_openLog');
-
   const newPagePromise  = new Promise((x) => {
     browser.once('targetcreated', (target) => {
       x(target.page());
@@ -41,8 +47,8 @@ let gameID = process.argv[2];
   });
 
   await initialPage.click('#Foundation_Elemental_2_openLog');
-
   const gameLogPage = await newPagePromise;
+  await waitForElementToLoad(gameLogPage, '#Foundation_Elemental_1_log', ['tr']);
 
   await gameLogPage.screenshot({
     path: 'test.png'

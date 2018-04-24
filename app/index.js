@@ -2,11 +2,6 @@ const puppeteer = require('puppeteer');
 const process = require('process');
 const GAMESBYEMAIL_BASE_URL = 'http://gamesbyemail.com/Games/Play?';
 
-const findNewestPage = function (currentPages, openedPages) {
-  let notTracked = true;
-
-  for (let currentPage of currentPages) {
-    notTracked = true;
 
     for (let openedPage of openedPages) {
       if (currentPage._target._targetId == openedPage._target._targetId) {

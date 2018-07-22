@@ -1,29 +1,10 @@
+'use strict';
+
 const puppeteer = require('puppeteer');
 const process = require('process');
+const helper = require('./helper');
+
 const GAMESBYEMAIL_BASE_URL = 'http://gamesbyemail.com/Games/Play?';
-
-const waitForElementToLoad = async function(page, container, targets) {
-  let counter = -1;
-  let numTargets = 0;
-
-  await page.waitForSelector(container);
-
-  while(numTargets !== counter) {
-    counter = numTargets;
-    await page.waitFor(2000);
-    console.log(`counter: ${counter}`);
-
-    for(let target of targets) {
-      numTargets = await page.$eval(container, (container, target) => {
-        return container.querySelectorAll(target).length;
-      }, target);
-    }
-
-    console.log(`numTargets: ${numTargets}`);
-  }
-
-  console.log(`End Counter: ${counter}, End numTargets: ${numTargets}`);
-};
 
 if(process.argv.length < 3) {
   console.log('You must pass the game ID!');
@@ -51,7 +32,7 @@ let gameID = process.argv[2];
   console.log('Waiting to open game log page...');
 
   const gameLogPage = await gameLogOpenPromise;
-  await waitForElementToLoad(gameLogPage, '#Foundation_Elemental_1_log', ['tr']);
+  await helper.waitForElementToLoad(gameLogPage, '#Foundation_Elemental_1_log', ['tr']);
   await gameLogPage.waitForSelector('#Foundation_Elemental_1_printerFriendlyLog');
   const printLogPagePromise = new Promise((x) => {
     browser.once('targetcreated', (target) => {
@@ -65,7 +46,7 @@ let gameID = process.argv[2];
 
   const printLogPage = await printLogPagePromise;
   await printLogPage.waitForSelector('body > h3');
-  await waitForElementToLoad(printLogPage, 'body > div', ['tr']);
+  await helper.waitForElementToLoad(printLogPage, 'body > div', ['tr']);
 
   const logHTML = await printLogPage.content();
 

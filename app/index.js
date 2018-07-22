@@ -40,19 +40,36 @@ let gameID = process.argv[2];
   const initialPage = await browser.newPage();
   await initialPage.goto(`${GAMESBYEMAIL_BASE_URL}${gameID}`);
   await initialPage.waitForSelector('#Foundation_Elemental_2_openLog');
-  const newPagePromise  = new Promise((x) => {
+  const gameLogOpenPromise  = new Promise((x) => {
     browser.once('targetcreated', (target) => {
       x(target.page());
     });
   });
 
   await initialPage.click('#Foundation_Elemental_2_openLog');
-  const gameLogPage = await newPagePromise;
-  await waitForElementToLoad(gameLogPage, '#Foundation_Elemental_1_log', ['tr']);
 
-  await gameLogPage.screenshot({
-    path: 'test.png'
+  console.log('Waiting to open game log page...');
+
+  const gameLogPage = await gameLogOpenPromise;
+  await waitForElementToLoad(gameLogPage, '#Foundation_Elemental_1_log', ['tr']);
+  await gameLogPage.waitForSelector('#Foundation_Elemental_1_printerFriendlyLog');
+  const printLogPagePromise = new Promise((x) => {
+    browser.once('targetcreated', (target) => {
+      x(target.page());
+    });
   });
+
+  await gameLogPage.click('#Foundation_Elemental_1_printerFriendlyLog');
+
+  console.log('Waiting to open print log page...');
+
+  const printLogPage = await printLogPagePromise;
+  await printLogPage.waitForSelector('body > h3');
+  await waitForElementToLoad(printLogPage, 'body > div', ['tr']);
+
+  const logHTML = await printLogPage.content();
+
+  console.log(logHTML);
 
   await browser.close();
 })();
